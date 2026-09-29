@@ -3,8 +3,21 @@
 Web estática e interactiva con los bienes declarados por los 350 diputados de la XV Legislatura
 (declaraciones de bienes y rentas publicadas por el Congreso de los Diputados).
 
+🌐 **Ver la web publicada: <https://xerraires.github.io/diputados/>**
+
 **No requiere servidor ni configuración**: abre `index.html` y listo. También funciona
 descargando el repo y abriendo el archivo en el navegador.
+
+## ⚠️ Advertencia sobre los datos
+
+Los datos han sido extraídos con **OCR** de las declaraciones originales y **pueden contener errores**.
+Recomiendo consultar siempre los **archivos originales**: pincha en el diputado y entra en su
+«Declaración de Bienes y Actividades» (PDF del Congreso, enlazado en la web).
+
+## Licencia / uso
+
+Este proyecto se ha hecho con **datos públicos** a raíz de la movilización social en Madrid y otras
+partes de España. Sentiros libres de cogerlo, trastearlo y modificarlo a vuestro antojo :)
 
 ## Archivos principales
 
