@@ -1,0 +1,21 @@
+# Datos crudos de trabajo (descargados/derivados, no versionados)
+pdfs/
+ocr_png/
+ocr_tsv/
+ocr_tsv_psm4/
+ocr_txt/
+obs_png/
+auditoria/
+venv/
+__pycache__/
+.DS_Store
+
+# Generados (se pueden regenerar con build_web.py / build_excel.py)
+bienes_patrimoniales.xlsx
+
+# Copias de seguridad locales
+*.bak
+*.bak2
+*.pre
+*.pre-*
+bienes.json.*

@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bienes patrimoniales de los diputados — XV Legislatura</title>
+<style>
+:root{
+  --bg:#0b1220; --panel:#111b2e; --panel2:#0e1729; --line:#24314f;
+  --text:#e8eefc; --muted:#93a4c3; --accent:#5aa2ff;
+  --urb:#5aa2ff; --rus:#4ade80; --soc:#c084fc;
+  --dep:#fbbf24; --val:#fb923c; --veh:#f472b6; --otr:#a3e635; --deu:#f87171; --obs:#94a3b8;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font:15px/1.45 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif}
+a{color:var(--accent);text-decoration:none}
+
+/* ── Header ─────────────── */
+header{padding:26px 28px 18px;border-bottom:1px solid var(--line);background:linear-gradient(180deg,#0d1526,#0b1220)}
+h1{font-size:22px;font-weight:800;letter-spacing:.2px}
+.sub{color:var(--muted);font-size:13px;margin-top:4px}
+.kpis{display:flex;gap:14px;margin-top:16px;flex-wrap:wrap}
+.kpi{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px 16px;min-width:130px}
+.kpi b{display:block;font-size:22px}
+.kpi span{font-size:11.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+.kpi.inm b{color:var(--urb)} .kpi.rus b{color:var(--rus)} .kpi.soc b{color:var(--soc)}
+
+/* ── Tabs ─────────────── */
+nav{display:flex;gap:4px;padding:10px 28px 0;border-bottom:1px solid var(--line);background:var(--panel2);overflow-x:auto}
+nav button{background:none;border:none;color:var(--muted);font:inherit;font-weight:600;font-size:14px;
+  padding:10px 16px;cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap}
+nav button:hover{color:var(--text)}
+nav button.on{color:var(--text);border-color:var(--accent)}
+
+main{padding:20px 28px 60px;max-width:1500px}
+section.view{display:none} section.view.on{display:block}
+
+/* ── Filtros ─────────────── */
+.filters{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+.filters input[type=search]{background:var(--panel);border:1px solid var(--line);color:var(--text);
+  border-radius:8px;padding:8px 12px;font:inherit;min-width:260px}
+select.multi{background:var(--panel);border:1px solid var(--line);color:var(--text);border-radius:8px;padding:8px 10px;font:inherit}
+.filters label{color:var(--muted);font-size:13px;display:flex;align-items:center;gap:6px}
+.count{color:var(--muted);font-size:13px;margin-left:auto}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.chip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--panel);
+  border-radius:999px;padding:5px 12px;cursor:pointer;font-size:13px;color:var(--muted);user-select:none}
+.chip .dot{width:9px;height:9px;border-radius:50%}
+.chip.on{color:var(--text);border-color:var(--accent);background:#16233d}
+
+/* ── Barras ranking ─────────────── */
+.bars{display:flex;flex-direction:column;gap:10px}
+.bar-row{display:grid;grid-template-columns:210px 1fr 130px;gap:12px;align-items:center;cursor:pointer;
+  padding:6px 10px;border-radius:10px}
+.bar-row:hover{background:var(--panel)}
+.bar-who{font-weight:600;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bar-who small{display:block;color:var(--muted);font-weight:400;font-size:11.5px}
+.bar-track{background:var(--panel2);border:1px solid var(--line);height:22px;border-radius:6px;overflow:hidden;display:flex}
+.bar-seg{height:100%;min-width:1px;transition:width .3s}
+.bar-num{color:var(--muted);font-size:13px;text-align:right;font-variant-numeric:tabular-nums}
+.legend{display:flex;gap:16px;flex-wrap:wrap;margin:10px 0 18px;color:var(--muted);font-size:12.5px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:middle}
+
+details.party{border:1px solid var(--line);border-radius:12px;margin-bottom:12px;background:var(--panel);overflow:hidden}
+details.party summary{padding:13px 16px;cursor:pointer;display:flex;align-items:center;gap:12px;list-style:none}
+details.party summary::-webkit-details-marker{display:none}
+details.party summary:hover{background:var(--panel2)}
+.p-dot{width:12px;height:12px;border-radius:50%;flex:none}
+.p-name{font-weight:700;font-size:15px}
+.p-meta{color:var(--muted);font-size:12.5px;margin-left:auto;display:flex;gap:14px;text-align:right}
+.p-dips{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:8px;padding:4px 16px 16px}
+.dip-pill{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:7px 10px;font-size:12.5px;cursor:pointer}
+.dip-pill:hover{border-color:var(--accent)}
+.dip-pill b{display:block;font-size:13px}
+.dip-pill span{color:var(--muted)}
+
+/* ── Grid diputados ─────────────── */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px;cursor:pointer}
+.card:hover{border-color:var(--accent);transform:translateY(-1px)}
+.card .top{display:flex;align-items:baseline;gap:8px}
+.card b{font-size:14px}
+.card .parts i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:4px}
+.card .cnt{color:var(--muted);font-size:12px;margin-top:6px}
+
+/* ── Tabla bienes (todo) ─────────────── */
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th{position:sticky;top:0;background:var(--panel2);color:var(--muted);text-align:left;padding:9px 10px;
+  border-bottom:1px solid var(--line);cursor:pointer;white-space:nowrap;font-size:12px;text-transform:uppercase;letter-spacing:.4px}
+td{padding:8px 10px;border-bottom:1px solid #1a2540;vertical-align:top}
+tr:hover td{background:#141f36}
+.tag{display:inline-block;padding:2px 9px;border-radius:999px;font-size:11.5px;font-weight:600;white-space:nowrap}
+
+/* ── Panel detalle ─────────────── */
+#panelWrap{position:fixed;inset:0;z-index:50;display:none}
+#panelWrap.on{display:block}
+#panelBg{position:absolute;inset:0;background:rgba(4,8,18,.72)}
+#panel{position:absolute;top:0;right:0;bottom:0;width:min(680px,100%);background:var(--panel2);
+  border-left:1px solid var(--line);overflow-y:auto;padding:22px 24px 40px;box-shadow:-20px 0 60px rgba(0,0,0,.5)}
+#panel h2{font-size:19px;margin-bottom:2px}
+.pd-sub{color:var(--muted);font-size:13px;margin-bottom:16px}
+.pd-stats{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px}
+.pd-stats .kpi{min-width:100px;padding:8px 12px}
+.pdf-link{display:inline-block;margin-bottom:18px;font-size:13px}
+.igroup{margin-bottom:16px}
+.igroup .ih{font-size:12.5px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);
+  padding-bottom:5px;border-bottom:1px solid var(--line);margin-bottom:8px;display:flex;gap:10px;align-items:center}
+.igroup .ih .n{margin-left:auto;font-size:11px}
+.bitem{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:8px;font-size:13.5px}
+.bitem .bl{display:flex;gap:8px;flex-wrap:wrap;margin-top:5px;font-size:12.5px;color:var(--muted)}
+.bitem .bl span{background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:2px 8px}
+#panelClose{position:absolute;top:14px;right:16px;background:var(--panel);border:1px solid var(--line);
+  color:var(--text);width:34px;height:34px;border-radius:10px;font-size:17px;cursor:pointer;z-index:2}
+
+.empty{color:var(--muted);padding:30px 0;text-align:center}
+.note{background:#14203a;border:1px solid #24406e;border-radius:10px;padding:10px 14px;font-size:13px;color:var(--muted);margin-bottom:16px}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Bienes patrimoniales de los diputados · XV Legislatura</h1>
+  <div class="sub">Declaraciones de Bienes y Rentas publicadas por el Congreso de los Diputados · 350 escaños · Datos extraídos por OCR de los PDF oficiales</div>
+  <div class="kpis" id="kpis"></div>
+</header>
+
+<nav>
+  <button data-view="diputados" class="on">👥 Por diputado</button>
+  <button data-view="partidos" class="">🏛 Por partido</button>
+  <button data-view="ranking" class="">📊 Ranking inmuebles</button>
+  <button data-view="todos" class="">🗂 Todos los bienes</button>
+</nav>
+
+<main>
+  <!-- ═══════════ VISTA DIPUTADOS ═══════════ -->
+  <section class="view on" id="v-diputados">
+    <div class="filters">
+      <input type="search" id="f-dipq" placeholder="Buscar diputado, partido, circunscripción, inmueble…">
+      <select class="multi" id="f-dipp"></select>
+      <select class="multi" id="f-dipprop">
+        <option value="">Titularidad: todas</option>
+        <option value="indiviso">🤝 Con algún indiviso</option>
+        <option value="plena">✓ Sin indivisos declarados</option>
+      </select>
+      <label><input type="checkbox" id="f-dipinm"> Solo con inmuebles</label>
+      <span class="count" id="f-dipcount"></span>
+    </div>
+    <div class="chips" id="chips"></div>
+    <div class="grid" id="grid-dips"></div>
+  </section>
+
+  <!-- ═══════════ VISTA PARTIDOS ═══════════ -->
+  <section class="view" id="v-partidos">
+    <input type="search" id="f-parq" placeholder="Filtrar partido…" style="background:var(--panel);border:1px solid var(--line);color:var(--text);border-radius:8px;padding:8px 12px;font:inherit;margin-bottom:14px">
+    <div id="list-parties"></div>
+  </section>
+
+  <!-- ═══════════ VISTA RANKING ═══════════ -->
+  <section class="view" id="v-ranking">
+    <div class="filters">
+      <select class="multi" id="f-rankp"></select>
+      <select class="multi" id="f-rankc">
+        <option value="total">Inmuebles (urbano + rústico + sociedad)</option>
+        <option value="u">Solo urbanos</option>
+        <option value="r">Solo rústicos</option>
+        <option value="s">Solo sociedades</option>
+        <option value="otros">Patrimonio total (todos los bienes)</option>
+      </select>
+      <span class="count" id="f-rankcount"></span>
+    </div>
+    <div class="legend" id="rank-legend"></div>
+    <div class="bars" id="bars"></div>
+</section>
+
+  <!-- ═══════════ VISTA TODOS ═══════════ -->
+  <section class="view" id="v-todos">
+    <div class="filters">
+      <input type="search" id="f-todq" placeholder="Buscar en descripción, lugar, derecho…">
+      <select class="multi" id="f-todp"></select>
+      <select class="multi" id="f-todc"></select>
+      <span class="count" id="f-todcount"></span>
+    </div>
+    <div class="note">⚠️ Texto extraído por OCR: puede contener erratas. Haz clic en una fila para ver cualquier detalle.</div>
+    <div style="max-height:70vh;overflow:auto;border:1px solid var(--line);border-radius:12px">
+      <table>
+        <thead><tr>
+          <th>Diputado</th><th>Partido</th><th>Categoría</th><th>Descripción</th>
+          <th>Lugar</th><th>Fecha</th><th>Derecho</th><th>Valor (€)</th>
+        </tr></thead>
+        <tbody id="tb-todos"></tbody>
+      </table>
+    </div>
+  </section>
+</main>
+
+<!-- ═══════════ PANEL DE DETALLE ═══════════ -->
+<div id="panelWrap">
+  <div id="panelBg"></div>
+  <div id="panel">
+    <button id="panelClose" title="Cerrar">✕</button>
+    <div id="panelBody"></div>
+  </div>
+</div>
+
+<script src="data.js"></script>
+<script>
+/* ═══════════ Config ═══════════ */
+const CATS = {
+  'Inmueble urbano':    {short:'Urbano',    color:'#5aa2ff', icon:'🏢'},
+  'Inmueble rústico':   {short:'Rústico',   color:'#4ade80', icon:'🌾'},
+  'Inmueble de sociedad':{short:'Sociedad',color:'#c084fc', icon:'🏛'},
+  'Depósito o cuenta':  {short:'Depósitos', color:'#fbbf24', icon:'🏦'},
+  'Valores, acciones y deuda pública':{short:'Valores',color:'#fb923c',icon:'📈'},
+  'Vehículo o embarcación':{short:'Vehículos',color:'#f472b6',icon:'🚗'},
+  'Otros bienes o derechos':{short:'Otros',color:'#a3e635',icon:'📦'},
+  'Deuda o crédito':    {short:'Deudas',    color:'#f87171', icon:'💳'},
+  'OBSERVACIONES':      {short:'Observ.',   color:'#94a3b8', icon:'📝'},
+};
+const ORDER = Object.keys(CATS);
+const INMUEBLES = ORDER.slice(0,3);
+
+const PARTY_COLORS = {'PP':'#1e88e5','PSOE':'#e53935','VOX':'#6d4c41','SUMAR':'#a142b8',
+ 'ERC':'#fdd835','JxCAT-JUNTS':'#00acc1','EH Bildu':'#7cb342','EAJ-PNV':'#039be5',
+ 'PSC-PSOE':'#c62828','PSE-EE (PSOE)':'#b71c1c','PsdeG-PSOE':'#d84315','PSIB-PSOE':'#ef5350',
+ 'PSN-PSOE':'#e57373','BNG':'#00897b','UPN':'#8d6e63'};
+const partyColor = p => PARTY_COLORS[p] || '#78909c';
+
+/* ═══════════ Precompute ═══════════ */
+const statsCache = new Map();
+function dipStats(d){
+  if(statsCache.has(d.cod)) return statsCache.get(d.cod);
+  const byCat = {}; ORDER.forEach(c => byCat[c] = 0);
+  let inmuebles = 0, inmPlena = 0, inmIndiv = 0;
+  d.items.forEach(it => {
+    if(byCat[it.s] !== undefined) byCat[it.s]++;
+    // inmueble válido = con descripción o valor (los 'nada que declarar' van vacíos)
+    if(INMUEBLES.includes(it.s) && (it.d || it.v)) {
+      inmuebles++;
+      if(it.pr === 'P') inmPlena++;
+      else if(it.pr === 'I') inmIndiv++;
+    }
+  });
+  const s = {byCat, total: d.items.length, inmuebles, inmPlena, inmIndiv};
+  statsCache.set(d.cod, s);
+  return s;
+}
+const SIN_DECL = DIPUTADOS.filter(d => d.items.length === 0).map(d => d.cod);
+
+/* ═══════════ KPIs ═══════════ */
+const totalInm = DIPUTADOS.reduce((a,d) => a + dipStats(d).inmuebles, 0);
+const conInm   = DIPUTADOS.filter(d => dipStats(d).inmuebles > 0).length;
+const conMulti = DIPUTADOS.filter(d => dipStats(d).inmuebles > 1).length;
+const media    = (totalInm / DIPUTADOS.length).toFixed(1);
+const totIndiv = DIPUTADOS.reduce((a,d) => a + dipStats(d).inmIndiv, 0);
+const totPlena = DIPUTADOS.reduce((a,d) => a + dipStats(d).inmPlena, 0);
+
+document.getElementById('kpis').innerHTML = `
+  <div class="kpi"><b>350</b><span>Diputados</span></div>
+  <div class="kpi"><b>${totalInm}</b><span>Inmuebles declarados</span></div>
+  <div class="kpi inm"><b>${conInm}</b><span>Con algún inmueble</span></div>
+  <div class="kpi"><b>${conMulti}</b><span>Con más de 1</span></div>
+  <div class="kpi"><b>${media}</b><span>Media por diputado</span></div>
+  <div class="kpi"><b>${totPlena}</b><span>✓ En plena propiedad</span></div>
+  <div class="kpi"><b>${totIndiv}</b><span>🤝 En indiviso</span></div>
+  <div class="kpi rus"><b>${DIPUTADOS.reduce((a,d)=>a+dipStats(d).byCat['Inmueble rústico'],0)}</b><span>Rústicos</span></div>
+  <div class="kpi soc"><b>${DIPUTADOS.reduce((a,d)=>a+dipStats(d).byCat['Inmueble de sociedad'],0)}</b><span>De sociedades</span></div>`;
+
+/* ═══════════ Tabs ═══════════ */
+document.querySelectorAll('nav button').forEach(b => b.onclick = () => {
+  document.querySelectorAll('nav button').forEach(x => x.classList.toggle('on', x === b));
+  document.querySelectorAll('section.view').forEach(s => s.classList.toggle('on', s.id === 'v-' + b.dataset.view));
+});
+
+/* ═══════════ Selects compartidos ═══════════ */
+const partidos = [...new Set(DIPUTADOS.map(d => d.partido))];
+function fillSelect(sel, withAll){
+  sel.innerHTML = (withAll ? `<option value="">Todos los partidos</option>` : '') +
+    partidos.map(p => `<option value="${p}">${p}</option>`).join('');
+}
+['f-dipp','f-todp','f-rankp'].forEach(id => fillSelect(document.getElementById(id), true));
+
+/* select categorías vista "todos" */
+const selTodC = document.getElementById('f-todc');
+selTodC.innerHTML = `<option value="">Todas las categorías</option>` +
+  ORDER.map(c => `<option value="${c}">${CATS[c].icon} ${CATS[c].short}<\/option>`).join('');
+
+/* ═══════════ Chips de categoria (vista diputados) ═══════════ */
+const chipState = new Set();
+const chipsEl = document.getElementById('chips');
+chipsEl.innerHTML = '<span style="color:var(--muted);font-size:12.5px;align-self:center;margin-right:4px">Filtrar por tipo de bien:</span>' +
+  Object.entries(CATS).map(([c,v]) => `<label class="chip" data-cat="${c}"><i class="dot" style="background:${v.color}"></i>${v.icon} ${v.short}</label>`).join('');
+chipsEl.querySelectorAll('.chip').forEach(ch => ch.onclick = () => {
+  const c = ch.dataset.cat;
+  chipState.has(c) ? chipState.delete(c) : chipState.add(c);
+  ch.classList.toggle('on');
+  renderDips();
+});
+
+/* ═══════════ VISTA DIPUTADOS ═══════════ */
+const gridDips = document.getElementById('grid-dips');
+function renderDips(){
+  const q = document.getElementById('f-dipq').value.toLowerCase();
+  const p = document.getElementById('f-dipp').value;
+  const prop = document.getElementById('f-dipprop').value;
+  const onlyInm = document.getElementById('f-dipinm').checked;
+  const list = DIPUTADOS.filter(d => {
+    const s = dipStats(d);
+    if(p && d.partido !== p) return false;
+    if(onlyInm && !s.inmuebles) return false;
+    if(prop === 'indiviso' && !s.inmIndiv) return false;
+    if(prop === 'plena' && (!s.inmuebles || s.inmIndiv)) return false;
+    if(chipState.size){
+      // mostrar diputados que tengan AL MENOS un bien de cada categoria marcada
+      for(const c of chipState) if(!s.byCat[c]) return false;
+    }
+    if(q){
+      const hay = (d.nombre + ' ' + d.partido + ' ' + d.circ + ' ' +
+        d.items.map(i => (CATS[i.s]?.short||'') + ' ' + i.d + ' ' + i.l).join(' ')).toLowerCase();
+      if(!hay.includes(q)) return false;
+    }
+    return true;
+  });
+  document.getElementById('f-dipcount').textContent = list.length + ' diputados';
+  list.sort((a,b) => dipStats(b).inmuebles - dipStats(a).inmuebles || a.nombre.localeCompare(b.nombre));
+  gridDips.innerHTML = list.map(d => {
+    const s = dipStats(d);
+    const segs = INMUEBLES.filter(c => s.byCat[c]).map(c =>
+      `<i style="display:inline-block;width:${8 + s.byCat[c]*3}px;height:9px;border-radius:2px;background:${CATS[c].color}" title="${CATS[c].short}: ${s.byCat[c]}"></i>`).join('');
+    return `<div class="card" onclick="openPanel('${d.cod}')">
+      <div class="top"><b>${d.nombre}</b></div>
+      <div style="color:var(--muted);font-size:12px;margin-top:3px">
+        <i class="dot" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${partyColor(d.partido)};margin-right:5px"></i>${d.partido} · ${d.circ}</div>
+      ${s.inmuebles
+        ? `<div class="parts" style="margin-top:8px">${segs}${s.inmIndiv ? `<span style="font-size:11px;color:#fbbf24" title="${s.inmIndiv} en indiviso (%, ganancial, nuda propiedad, usufructo…)" onclick="event.stopPropagation();document.getElementById('f-dipprop').value='indiviso'">🤝 ${s.inmIndiv}</span>` : ''}</div>`
+        : (SIN_DECL.includes(d.cod)
+            ? `<div style="color:#f87171;font-size:12px;margin-top:8px">⚠️ Sin declaración publicada</div>`
+            : `<div style="color:var(--muted);font-size:12px;margin-top:8px">Sin inmuebles declarados</div>`)}
+      <div class="cnt">${SIN_DECL.includes(d.cod)
+        ? 'Sin declaración de bienes en la web del Congreso'
+        : `${s.inmuebles} inmueble(s) · ${s.total} bienes en total`}</div>
+    </div>`;
+  }).join('');
+}
+['f-dipq','f-dipp','f-dipinm','f-dipprop'].forEach(id => {
+  document.getElementById(id).addEventListener('input', renderDips);
+  document.getElementById(id).addEventListener('change', renderDips);
+});
+
+/* ═══════════ VISTA PARTIDOS ═══════════ */
+function renderParties(){
+  const q = document.getElementById('f-parq').value.toLowerCase();
+  const groups = {};
+  DIPUTADOS.forEach(d => { (groups[d.partido] = groups[d.partido] || []).push(d); });
+  const rows = Object.entries(groups)
+    .filter(([p]) => !q || p.toLowerCase().includes(q))
+    .map(([p, dips]) => {
+      const all = dips.flatMap(d => d.items);
+      const c = {}; ORDER.forEach(x => c[x] = 0); all.forEach(i => { if(c[i.s] !== undefined) c[i.s]++; });
+      const nInm = c['Inmueble urbano'] + c['Inmueble rústico'] + c['Inmueble de sociedad'];
+      const dipConInm = dips.filter(d => dipStats(d).inmuebles > 0).length;
+      const pct = Math.round(100 * dips.filter(d => dipStats(d).inmuebles > 1).length / dips.length);
+      const stats = [
+        `🏢 ${c['Inmueble urbano']}`, `🌾 ${c['Inmueble rústico']}`, `🏛 ${c['Inmueble de sociedad']}`,
+        `🏦 ${c['Depósito o cuenta']}`, `📈 ${c['Valores, acciones y deuda pública']}`,
+        `🚗 ${c['Vehículo o embarcación']}`, `💳 ${c['Deuda o crédito']}`,
+      ].join(' · ');
+      const dipPills = dips.map(d => {
+        const s = dipStats(d);
+        return `<div class="dip-pill" onclick="event.stopPropagation();openPanel('${d.cod}')">
+          <b>${d.nombre}</b><span>${s.inmuebles} inm · ${s.total} bienes · ${d.circ}</span></div>`;
+      }).join('');
+      return `<details class="party"><summary>
+        <i class="p-dot" style="background:${partyColor(p)}"></i>
+        <span class="p-name">${p}</span>
+        <span class="p-meta">
+          <span><b style="color:var(--text)">${nInm}</b> inmuebles</span>
+          <span>${dipConInm}/${dips.length} con inmuebles</span>
+          <span>${pct}% con >1</span>
+        </span></summary>
+        <div style="padding:0 16px 6px;color:var(--muted);font-size:12.5px">${stats}${c['OBSERVACIONES'] ? ` · 📝 ${c['OBSERVACIONES']} obs` : ''} · 📦 ${c['Otros bienes o derechos']} otros</div>
+        <div class="p-dips">${dipPills}</div></details>`;
+    }).join('');
+  document.getElementById('list-parties').innerHTML = rows;
+}
+document.getElementById('f-parq').addEventListener('input', renderParties);
+
+/* ═══════════ VISTA RANKING ═══════════ */
+function renderRanking(){
+  const p = document.getElementById('f-rankp').value;
+  const crit = document.getElementById('f-rankc').value || 'total';
+  let dips = DIPUTADOS.filter(d => !p || d.partido === p);
+  const val = d => {
+    const s = dipStats(d);
+    if(crit === 'total') return s.inmuebles;
+    if(crit === 'otros') return s.total;
+    return s.byCat[({u:'Inmueble urbano', r:'Inmueble rústico', s:'Inmueble de sociedad'})[crit]] || 0;
+  };
+  dips = dips.map(d => [d, val(d)]).filter(x => x[1] > 0).sort((a,b) => b[1] - a[1] || a[0].nombre.localeCompare(b[0].nombre));
+  const max = dips.length ? dips[0][1] : 1;
+  document.getElementById('f-rankcount').textContent = dips.length + ' diputados';
+  document.getElementById('rank-legend').innerHTML = (crit === 'otros' ? ORDER : INMUEBLES)
+    .map(c => `<span><i style="background:${CATS[c].color}"></i>${CATS[c].short}</span>`).join('');
+  document.getElementById('bars').innerHTML = dips.map(([d, n]) => {
+    const s = dipStats(d);
+    const segs = crit === 'total' || crit === 'otros'
+      ? (crit === 'total' ? INMUEBLES : ORDER).filter(c => s.byCat[c]).map(c =>
+          `<div class="bar-seg" style="width:${100 * s.byCat[c] / Math.max(n,1)}%;background:${CATS[c].color}" title="${CATS[c].short}: ${s.byCat[c]}"></div>`).join('')
+      : `<div class="bar-seg" style="width:100%;background:${CATS[({u:'Inmueble urbano', r:'Inmueble rústico', s:'Inmueble de sociedad'})[crit]].color}"></div>`;
+    return `<div class="bar-row" onclick="openPanel('${d.cod}')">
+      <div class="bar-who">${d.nombre}<small>${d.partido} · ${d.circ}</small></div>
+      <div class="bar-track">${segs}</div>
+      <div class="bar-num">${n} ${crit === 'otros' ? 'bienes' : 'inmueble(s)'}</div>
+    </div>`;
+  }).join('');
+}
+['f-rankp','f-rankc'].forEach(id => {
+  document.getElementById(id).addEventListener('input', renderRanking);
+  document.getElementById(id).addEventListener('change', renderRanking);
+});
+
+/* ═══════════ VISTA TODOS ═══════════ */
+function renderTodos(){
+  const q = document.getElementById('f-todq').value.toLowerCase();
+  const p = document.getElementById('f-todp').value;
+  const c = document.getElementById('f-todc').value;
+  const rows = [];
+  DIPUTADOS.forEach(d => d.items.forEach(it => {
+    if(c && it.s !== c) return;
+    if(p && d.partido !== p) return;
+    if(q && !((it.d + ' ' + it.l + ' ' + it.f + ' ' + it.r + ' ' + it.v).toLowerCase().includes(q))) return;
+    rows.push([d, it]);
+  }));
+  document.getElementById('f-todcount').textContent = rows.length + ' bienes';
+  rows.sort((a,b) => a[0].nombre.localeCompare(b[0].nombre));
+  const tb = document.getElementById('tb-todos');
+  tb.innerHTML = rows.map(([d, it]) => {
+    const st = CATS[it.s] || {color:'#888', short:it.s};
+    return `<tr onclick="openPanel('${d.cod}','${it.s.replace(/'/g,"\\'")}')">
+      <td><b>${d.nombre}</b><br><small style="color:var(--muted)">${d.partido}</small></td>
+      <td></td>
+      <td><span class="tag" style="background:${st.color}22;color:${st.color};border:1px solid ${st.color}55;padding:2px 8px;border-radius:999px;font-size:11px">${st.short}</span></td>
+      <td>${it.d || '—'}</td><td>${it.l || '—'}</td><td>${it.f || '—'}</td><td>${it.r || '—'}${INMUEBLES.includes(it.s) && it.pr ? (it.pr === 'I' ? ' <span style="color:#fbbf24;font-size:11px">🤝</span>' : ' <span style="color:#4ade80;font-size:11px">✓</span>') : ''}</td><td>${it.v || '—'}</td></tr>`;
+  }).join('');
+}
+['f-todq','f-todp','f-todc'].forEach(id => {
+  document.getElementById(id).addEventListener('input', renderTodos);
+  document.getElementById(id).addEventListener('change', renderTodos);
+});
+
+/* ═══════════ PANEL DE DETALLE ═══════════ */
+const wrap = document.getElementById('panelWrap');
+window.openPanel = function(cod, catFilter){
+  const d = DIPUTADOS.find(x => x.cod === cod);
+  const s = dipStats(d);
+  const nResc = d.items.filter(i => i.o === 'obs' || i.o === 'reclasificado').length;
+  /* donut SVG */
+  const catsD = ORDER.filter(x => s.byCat[x]);
+  const totD = s.total || 1;
+  let angD = -90, segsD = '';
+  const RD = 60, CX = 80, CY = 80;
+  catsD.forEach(c => {
+    const frac = s.byCat[c] / totD;
+    const a2 = angD + 360 * frac;
+    const large = frac > .5 ? 1 : 0;
+    const x1 = CX + RD * Math.cos(angD * Math.PI / 180), y1 = CY + RD * Math.sin(angD * Math.PI / 180);
+    const x2 = CX + RD * Math.cos(a2 * Math.PI / 180),  y2 = CY + RD * Math.sin(a2 * Math.PI / 180);
+    segsD += `<path d="M ${x1} ${y1} A ${RD} ${RD} 0 ${large} 1 ${x2} ${y2}" fill="none" stroke="${CATS[c].color}" stroke-width="20"/>`;
+    angD = a2;
+  });
+  const donut = `<div style="display:flex;gap:14px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 16px;margin-bottom:14px">
+    <svg width="120" height="120" viewBox="0 0 160 160" style="flex:none">${segsD}
+      <text x="80" y="76" text-anchor="middle" fill="#eaf1ff" font-size="26" font-weight="800">${s.inmuebles}</text>
+      <text x="80" y="94" text-anchor="middle" fill="#8ea3c8" font-size="10">INMUEBLES</text></svg>
+    <div style="display:flex;flex-direction:column;gap:5px;font-size:12.5px;color:var(--muted)">${catsD.map(c =>
+      `<span><i style="display:inline-block;width:9px;height:9px;border-radius:3px;background:${CATS[c].color};margin-right:6px;vertical-align:-1px"></i>${CATS[c].short} <b style="color:var(--text)">${s.byCat[c]}</b></span>`).join('')}</div>
+  </div>`;
+  const secs = ORDER.filter(x => s.byCat[x]).map(x => {
+    const its = d.items.filter(i => i.s === x);
+    const rows = its.map(i => {
+      const vacio = !i.d && !i.v;
+      const deObs = i.o === 'obs' || i.o === 'reclasificado';
+      const badgePr = INMUEBLES.includes(x) && i.pr
+        ? (i.pr === 'I'
+            ? ' <span class="tag" style="background:#fbbf2422;color:#fbbf24;border:1px solid #fbbf2455;font-size:10px">🤝 Indiviso</span>'
+            : ' <span class="tag" style="background:#4ade8022;color:#4ade80;border:1px solid #4ade8055;font-size:10px">✓ Plena</span>')
+        : '';
+      const cuerpo = i.d
+        ? `<div style="font-weight:600">${esc(i.d)}${badgePr}${deObs?' <span class="tag" style="background:#fbbf2422;color:#fbbf24;border:1px solid #fbbf2455;font-size:10px">📝 en observaciones</span>':''}</div>`
+        : (i.v ? '<div style="color:var(--muted);font-style:italic">(El formulario no detalla el concepto; solo consta el importe)</div>'
+               : '<div style="color:var(--muted);font-style:italic">Nada que declarar</div>');
+      return `<div class="bitem" ${vacio?'style="opacity:.45"':''} ${deObs?'style="border-left:3px solid #fbbf24"':''}>
+      ${cuerpo}
+      <div class="bl">
+        ${i.l ? `<span>📍 ${esc(i.l)}</span>` : ''}
+        ${i.f ? `<span>📅 ${esc(i.f)}</span>` : ''}
+        ${i.r ? `<span>📜 ${esc(i.r)}</span>` : ''}
+        ${i.v ? `<span>💰 ${esc(i.v)}</span>` : ''}
+      </div></div>`;
+    }).join('');
+    const notaObs = (x === 'OBSERVACIONES' && nResc)
+      ? `<div style="background:#182448;border:1px solid #2b3d6e;color:#aabde0;border-radius:10px;padding:8px 12px;font-size:12px;margin-bottom:8px">✅ Los bienes mencionados en esta observación están ya contabilizados arriba, en sus apartados, con la insignia <span class="tag" style="background:#fbbf2422;color:#fbbf24;border:1px solid #fbbf2455;font-size:10px">📝 en observaciones</span>.</div>`
+      : '';
+    const v = CATS[x];
+    return `<div class="igroup"><div class="ih"><i style="width:10px;height:10px;border-radius:3px;background:${v.color};display:inline-block"></i>
+      ${v.icon} ${x === 'OBSERVACIONES' ? 'Observaciones' : x} <span class="n">${its.length}</span></div>${notaObs}${rows}</div>`;
+  }).join('');
+  const nRescNote = nResc ? `<div style="background:#182448;border:1px solid #2b3d6e;color:#aabde0;border-radius:10px;padding:8px 12px;font-size:12.5px;margin-bottom:14px">📝 Este diputado declaró <b>${nResc}</b> bien(es) adicional(es) en el apartado de observaciones (bienes que no cupieron en la tabla del formulario). Están contabilizados en sus apartados.</div>` : '';
+  const withoutDecl = SIN_DECL.includes(d.cod);
+  document.getElementById('panelBody').innerHTML = `
+    <h2>${d.nombre}</h2>
+    <div class="pd-sub"><i class="dot" style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${partyColor(d.partido)};margin-right:6px"></i>
+      ${d.partido} · ${d.grupo} · ${d.circ}</div>
+    <div class="pd-stats">
+      <div class="kpi"><b>${s.total}</b><span>Bienes</span></div>
+      <div class="kpi inm"><b>${s.inmuebles}</b><span>Inmuebles</span></div>
+      <div class="kpi"><b>${s.byCat['Depósito o cuenta']}</b><span>Cuentas</span></div>
+      <div class="kpi"><b>${s.byCat['Deuda o crédito']}</b><span>Deudas</span></div>
+    </div>
+    ${donut}
+    ${withoutDecl ? `<div class="note" style="padding:8px 12px;font-size:12px">⚠️ Este diputado aún no tiene publicada su declaración de bienes y rentas en la web del Congreso. La comparación con el resto no aplica.</div>` : ''}
+    ${d.pdf ? `<a class="pdf-link" href="${d.pdf}" target="_blank">📄 Ver declaración original (PDF del Congreso)</a>` : '<div class="note" style="padding:8px 12px;font-size:12px">📄 Sin PDF de bienes publicado en la web del Congreso.</div>'}
+    ${nRescNote}
+    ${secs}`;
+  wrap.classList.add('on');
+};
+document.getElementById('panelClose').onclick = () => wrap.classList.remove('on');
+document.getElementById('panelBg').onclick = () => wrap.classList.remove('on');
+document.addEventListener('keydown', e => { if(e.key === 'Escape') wrap.classList.remove('on'); });
+
+function esc(s){ return String(s).replace(/[&<>\"]/g, c =>
+  c === '&' ? '\u0026amp;' : c === '<' ? '\u0026lt;' : c === '>' ? '\u0026gt;' : '\u0026quot;'); }
+
+/* init */
+renderDips(); renderParties(); renderRanking(); renderTodos();
+</script>
+</body>
+</html>
